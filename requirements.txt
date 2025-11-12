@@ -2,3 +2,4 @@ Flask
 waitress
 firebase-admin
 gspread
+pytz
