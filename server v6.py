@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import datetime
 from datetime import timezone
@@ -263,4 +262,5 @@ def dashboard():
 if __name__ == '__main__':
     threading.Thread(target=sheets_worker, daemon=True).start()
     print(f"Iniciando servidor web en http://0.0.0.0:5000")
+
     serve(app, host='0.0.0.0', port=5000)
