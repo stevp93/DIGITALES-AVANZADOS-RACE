@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="5">
+    <title>Resultados de Carrera RFID</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        h1, h2 { color: #333; text-align: center; }
+        h2.winner { color: #d9534f; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .tag-id { font-family: monospace; font-size: 0.9em; color: #555; }
+        .start-button {
+            display: block; width: 50%; margin: 20px auto; padding: 20px;
+            font-size: 22px; font-weight: bold; color: white;
+            background-color: #d9534f; border: none; border-radius: 10px;
+            cursor: pointer;
+        }
+        .start-button:hover { background-color: #c9302c; }
+        .start-button.disabled { background-color: #999; cursor: not-allowed; }
+        .winner-box { 
+            background-color: #fff; padding: 20px; margin-top: 20px; 
+            border: 2px solid #d9534f; border-radius: 10px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>🏁 DIGITALES AVANZADOS RACE</h1>
+
+    {% if not race_status.raceStarted %}
+        <form action="/api/start_race" method="POST">
+            <button type="submit" class="start-button">
+                ¡INICIAR CARRERA!
+            </button>
+        </form>
+    {% else %}
+        <h2 style="color: green;">
+            ¡Carrera iniciada! Hora de inicio: 
+            {{ race_status.globalStartTime.astimezone().astimezone().strftime('%Y-%m-%d %H:%M:%S') }}
+        </h2>
+    {% endif %}
+
+    {% if winner_name %}
+        <div class="winner-box">
+            <h2 class="winner">🏆 ¡El Ganador es {{ winner_name }}! 🏆</h2>
+            <h3 style="text-align: center;">Tiempo Total: {{ winner_time_str }}</h3>
+        </div>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre (Tag ID)</th>
+                <th>Hora de Inicio </th>
+                <th>Tiempo Checkpoint #2</th>
+                <th>Tiempo Final (Checkpoint #3)</th>
+                <th>Tiempo Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in results_sorted %}
+            <tr>
+                <td>
+                    <b>{{ res.name }}</b>
+                    <br>
+                    <span class="tag-id">{{ res.tag_id }}</span>
+                </td>
+                <td>{{ res.get('startTime_str', '---') }}</td>
+                <td>{{ res.get('cp2Time_str', '---') }}</td>
+                <td>{{ res.get('cp3Time_str', '---') }}</td>
+                <td><b>{{ res.get('totalTime', '---') }}</b></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
