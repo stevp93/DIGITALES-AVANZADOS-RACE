@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import datetime
 from datetime import timezone
@@ -7,13 +6,12 @@ from waitress import serve
 import threading
 import os
 from queue import Queue, Empty
-
+import pytz
+import gspread
 # --- Importaciones de Firebase ---
 import firebase_admin
 from firebase_admin import credentials, firestore
-
-# --- Importación de Google Sheets ---
-import gspread
+LOCAL_TZ = pytz.timezone("America/Bogota")
 
 # --- Configuración e Inicialización de Firebase ---
 CREDS_FILE = 'firebase-creds.json'
@@ -87,10 +85,10 @@ def sheets_worker():
     print("Hilo de Google Sheets iniciado.")
     while True:
         try:
-            data_row = sheets_queue.get(timeout=5)
-            # --- CORRECCIÓN: Formato de hora ---
-            # Usamos la hora local que pasamos, ya convertida
-            data_row[3] = data_row[3].strftime('%Y-%m-%d %H:%M:%S')
+            data_row = sheets_queue.get(timeout=5) 
+            utc_time = data_row[3].replace(tzinfo=timezone.utc)
+            local_time = utc_time.astimezone(LOCAL_TZ)
+            data_row[3] = local_time.strftime('%Y-%m-%d %H:%M:%S')
             sh.append_row(data_row)
             sheets_queue.task_done()
         except Empty:
@@ -263,4 +261,5 @@ def dashboard():
 if __name__ == '__main__':
     threading.Thread(target=sheets_worker, daemon=True).start()
     print(f"Iniciando servidor web en http://0.0.0.0:5000")
+
     serve(app, host='0.0.0.0', port=5000)
